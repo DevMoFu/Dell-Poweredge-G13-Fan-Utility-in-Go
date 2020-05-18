@@ -1,5 +1,6 @@
-# Ipmi-Wrapper-with-Go
+# Dell-Poweredge-G13-Fan-Utility-in-Go
 ***Work In Progress***
+
 ***Not intended for PRODUCTION use***
 
 Dell Poweredge fan control CLI Utility
