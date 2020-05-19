@@ -5,13 +5,23 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 )
 
 //// create impitool boilerplate to enforce DRY
-//works
 func ipmiBoilerplate(args string, algoName string) {
 	argsArray := strings.Split(args, " ")
+
+	//fix for items that need white space in a single arg. Replace underscore.
+	for i := range argsArray {
+		matched, _ := regexp.MatchString(`_`, argsArray[i])
+		if matched {
+			argsArray[i] = strings.Replace(argsArray[i], "_", " ", 3)
+			println(argsArray[i])
+		}
+	}
+
 	cmd := exec.Command("ipmitool", argsArray...)
 	stdout, err := cmd.CombinedOutput()
 	if err != nil {
@@ -21,74 +31,53 @@ func ipmiBoilerplate(args string, algoName string) {
 	fmt.Printf("\n%s\n\n", stdout)
 }
 
-// May no longer be needed
-//func setIpmiBoilerplate(args string, hexcode string, algoName string) {
-//	argsArray := strings.Split(args, " ")
-//	argsSlice := argsArray[:]
-//	argsSlice = append(argsSlice, hexcode)
-//	fmt.Printf("%s\n\n", argsSlice) // test
-//	cmd := exec.Command("ipmitool", argsSlice...)
-//	stdout, err := cmd.CombinedOutput()
-//	if err != nil {
-//		fmt.Printf("%v failed with: \n%v\n", algoName, err)
-//		//os.Exit(1)
-//	}
-//	fmt.Printf("\n%s\n\n", stdout)
-//}
-
-// works
 func checkSystemSensors(c string) {
 	algoName := "checkSystemSensors"
 	args := fmt.Sprintf("%vsensor", c)
+	fmt.Println("System Sensors:")
 	ipmiBoilerplate(args, algoName)
 }
 
 func checkSystemTemps(c string) {
 	//  sensor reading 'Inlet Temp' Temp
 	algoName := "checkSystemTemps"
-	args := fmt.Sprintf("%vsensor Temp", c)
+	// Split in ipmiBoilerplate breaks 'Inlet Temp' arg.
+	// Fix has been added to make 'Inlet_Temp' -> 'Intlet Temp'
+	args := fmt.Sprintf("%vsensor reading Temp Inlet_Temp", c)
+	fmt.Println("System Temps:")
 	ipmiBoilerplate(args, algoName)
 }
 
-// works
 func checkCurrentFanSpeed(c string) {
-	algoName := "checkSystemTemps"
+	algoName := "checkCurrentFanSpeed"
 	args := fmt.Sprintf("%ssensor reading Fan1A Fan1B Fan2A Fan2B Fan3A Fan3B Fan4A Fan4B", c)
+	fmt.Println("Current Fan Speeds:")
 	ipmiBoilerplate(args, algoName)
 }
 
-//works
-// Add output based on stdout
 func checkThirdPartyCardBehavior(c string) {
 	algoName := "checkThirdPartyCardBehavior"
 	args := fmt.Sprintf("%sraw 0x30 0xce 0x01 0x16 0x05 0x00 0x00 0x00", c)
 	ipmiBoilerplate(args, algoName)
 }
 
-//Works
 func setManualFanMode(c string, ManualFanMode string) {
 	algoName := "setManualFanMode"
 	var ManualFanModeHex string
 	switch ManualFanMode {
 	case "disable":
 		fmt.Printf("%s: Disabled\n", algoName)
-		ManualFanModeHex = "0x30 0x30 0x01 0x01" // disable manual fan control
+		ManualFanModeHex = "0x30 0x30 0x01 0x01"
 	case "enable":
 		fmt.Printf("%s: Enabled\n", algoName)
-		ManualFanModeHex = "0x30 0x30 0x01 0x00" // enable manual fan control
+		ManualFanModeHex = "0x30 0x30 0x01 0x00"
 	default:
 		fmt.Printf("%s: '%s' is not a valid value. Try 'enable' or 'disable\n", algoName, ManualFanMode)
 		os.Exit(1)
 	}
 
-	// May not be needed
-	//args := fmt.Sprintf("%s%s", c, "raw")
-	//fmt.Printf("%s %s\n%s\n\n", args, ManualFanModeHex, algoName) //test //works
-	//setIpmiBoilerplate(args, ManualFanModeHex, algoName)
-
 	args := fmt.Sprintf("%s%s %s", c, "raw", ManualFanModeHex)
-	println(args)
-	ipmiBoilerplate(args, algoName) // s
+	ipmiBoilerplate(args, algoName)
 }
 
 func setFanSpeed(c string, FanSpeed int) {
@@ -135,17 +124,18 @@ func setFanSpeed(c string, FanSpeed int) {
 		fanSpeedHex = "0x30 0x30 0x02 0xff 0x5a"
 	default:
 		fmt.Printf("%v: '%s' is not a valid value. Try 'enable' or 'disable\n", FanSpeed, algoName)
+		os.Exit(1)
 	}
 
-	// TODO: Notify user of fan mod change
+	// TODO: Notify user of fan mod change.
+	fmt.Printf("Automatically enabling Manual Fan Mode to set Fan Speed to %v%%\n", FanSpeed)
 	setManualFanMode(c, "enable")
 
 	args := fmt.Sprintf("%s%s %s", c, "raw", fanSpeedHex)
-	println(args)
+
 	ipmiBoilerplate(args, algoName)
 }
 
-// working
 func setThirdPartyCardBehavior(c string, thirdPartyCardBehavior string) {
 	algoName := "setThirdPartyCardBehavior"
 	var thirdPartyCardBehaviorHex string
@@ -161,7 +151,6 @@ func setThirdPartyCardBehavior(c string, thirdPartyCardBehavior string) {
 	}
 
 	args := fmt.Sprintf("%s%s %s", c, "raw", thirdPartyCardBehaviorHex)
-	//println(args) //test
 	ipmiBoilerplate(args, algoName)
 }
 
@@ -172,6 +161,8 @@ type creds struct {
 }
 
 // TODO: Add logic for option selection
+// Use ping node test and system info to verify connectivity
+// Show system temp fan
 func main() {
 
 	// credential
@@ -183,19 +174,18 @@ func main() {
 	FanSpeed := flag.Int("FanSpeed", 888, "10 < 'init' < 100 in increments of 5\nFanMode required to be enabled")
 	thirdPartyCardBehavior := flag.String("ThirdPartyCardBehavior", "", "'enable' or 'disable' 3rd Party Fan Behavior")
 	flag.Parse()
+	// Silence Go when no using associated flags
+	fmt.Sprintln(ManualFanMode, FanSpeed, thirdPartyCardBehavior)
 
 	c := creds{*hostnameIP, *username, *password}
 	credString := fmt.Sprintf("-I lanplus -H %v -U %v -P %v ", c.hostnameIP, c.username, c.password)
 
-	//checkSystemTemps(credString)
+	checkSystemTemps(credString)
 	//checkCurrentFanSpeed(credString)
-	checkThirdPartyCardBehavior(credString)
+	//checkThirdPartyCardBehavior(credString)
 	//setManualFanMode(credString, *ManualFanMode)
 	//setThirdPartyCardBehavior(credString, *thirdPartyCardBehavior)
 	setFanSpeed(credString, *FanSpeed)
-
-	// Silence Go
-	fmt.Sprintln(ManualFanMode, FanSpeed, thirdPartyCardBehavior) // remove after testing
 
 }
 
