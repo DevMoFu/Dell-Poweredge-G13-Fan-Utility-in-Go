@@ -21,6 +21,21 @@ func ipmiBoilerplate(args string, algoName string) {
 	fmt.Printf("\n%s\n\n", stdout)
 }
 
+// May no longer be needed
+//func setIpmiBoilerplate(args string, hexcode string, algoName string) {
+//	argsArray := strings.Split(args, " ")
+//	argsSlice := argsArray[:]
+//	argsSlice = append(argsSlice, hexcode)
+//	fmt.Printf("%s\n\n", argsSlice) // test
+//	cmd := exec.Command("ipmitool", argsSlice...)
+//	stdout, err := cmd.CombinedOutput()
+//	if err != nil {
+//		fmt.Printf("%v failed with: \n%v\n", algoName, err)
+//		//os.Exit(1)
+//	}
+//	fmt.Printf("\n%s\n\n", stdout)
+//}
+
 // works
 func checkSystemTemps(c string) {
 	algoName := "checkSystemTemps"
@@ -49,19 +64,24 @@ func setManualFanMode(c string, ManualFanMode string) {
 	var ManualFanModeHex string
 	switch ManualFanMode {
 	case "disable":
-		fmt.Printf("%s: Disabled", algoName)
-		ManualFanModeHex = "raw 0x30 0x30 0x01 0x01" // disable manual fan control
+		fmt.Printf("%s: Disabled\n", algoName)
+		ManualFanModeHex = "0x30 0x30 0x01 0x01" // disable manual fan control
 	case "enable":
-		fmt.Printf("%s: Enabled", algoName)
-		ManualFanModeHex = "raw 0x30 0x30 0x01 0x00" // enable manual fan control
+		fmt.Printf("%s: Enabled\n", algoName)
+		ManualFanModeHex = "0x30 0x30 0x01 0x00" // enable manual fan control
 	default:
-		fmt.Printf("%s: '%s' is not a valid value. Try 'enable' or 'disable", ManualFanMode, algoName)
+		fmt.Printf("%s: '%s' is not a valid value. Try 'enable' or 'disable\n", algoName, ManualFanMode)
 		os.Exit(1)
 	}
 
-	args := fmt.Sprintf("%s%s", c, ManualFanModeHex)
-	fmt.Println(args) // test
-	ipmiBoilerplate(args, algoName)
+	// May not be needed
+	//args := fmt.Sprintf("%s%s", c, "raw")
+	//fmt.Printf("%s %s\n%s\n\n", args, ManualFanModeHex, algoName) //test //works
+	//setIpmiBoilerplate(args, ManualFanModeHex, algoName)
+
+	args := fmt.Sprintf("%s%s %s", c, "raw", ManualFanModeHex)
+	println(args)
+	ipmiBoilerplate(args, algoName) // s
 }
 
 //func setFanSpeed(FanSpeed int) {
@@ -112,18 +132,24 @@ func setManualFanMode(c string, ManualFanMode string) {
 //	}
 //}
 
-//func setThirdPartyCardBehavior(thirdPartyCardBehavior string) {
-//	algoName := "setThirdPartyCardBehavior"
-//	// 3rd Party Card fan behavoir
-//	switch thirdPartyCardBehavior {
-//	case "disable":
-//		thirdPartyCardBehaviorHex := "0x30 0xce 0x00 0x16 0x05 0x00 0x00 0x00 0x05 0x00 0x01 0x00 0x00" // disable
-//	case "enable":
-//		thirdPartyCardBehaviorHex := "0x30 0xce 0x00 0x16 0x05 0x00 0x00 0x00 0x05 0x00 0x00 0x00 0x00" // enable
-//	default:
-//		fmt.Printf("Null or no valid 3rd Party Behavior selected. No action taken", algoName)
-//	}
-//}
+func setThirdPartyCardBehavior(c string, thirdPartyCardBehavior string) {
+	algoName := "setThirdPartyCardBehavior"
+	var thirdPartyCardBehaviorHex string
+	switch thirdPartyCardBehavior {
+	case "disable":
+		fmt.Printf("%s: 'disable' option selected\n", algoName)
+		thirdPartyCardBehaviorHex = "0x30 0xce 0x00 0x16 0x05 0x00 0x00 0x00 0x05 0x00 0x01 0x00 0x00"
+	case "enable":
+		fmt.Printf("%s: 'enabled' option selected\n", algoName)
+		thirdPartyCardBehaviorHex = "0x30 0xce 0x00 0x16 0x05 0x00 0x00 0x00 0x05 0x00 0x00 0x00 0x00"
+	default:
+		fmt.Printf("%s: '%s' is not a valid value. Try 'enable' or 'disable\n", thirdPartyCardBehaviorHex, algoName)
+	}
+
+	args := fmt.Sprintf("%s%s %s", c, "raw", thirdPartyCardBehaviorHex)
+	println(args)
+	ipmiBoilerplate(args, algoName)
+}
 
 type creds struct {
 	hostnameIP string
@@ -148,7 +174,8 @@ func main() {
 	//checkSystemTemps(credString)
 	//checkCurrentFanSpeed(credString)
 	checkThirdPartyCardBehavior(credString)
-	setManualFanMode(credString, *ManualFanMode)
+	//setManualFanMode(credString, *ManualFanMode)
+	setThirdPartyCardBehavior(credString, *thirdPartyCardBehavior)
 
 	fmt.Sprintln(ManualFanMode, FanSpeed, thirdPartyCardBehavior) // remove after testing
 
