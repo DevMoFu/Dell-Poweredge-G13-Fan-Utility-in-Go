@@ -18,7 +18,6 @@ func ipmiBoilerplate(args string, algoName string) {
 		matched, _ := regexp.MatchString(`_`, argsArray[i])
 		if matched {
 			argsArray[i] = strings.Replace(argsArray[i], "_", " ", 3)
-			println(argsArray[i])
 		}
 	}
 
@@ -26,9 +25,9 @@ func ipmiBoilerplate(args string, algoName string) {
 	stdout, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Printf("%v failed with: \n%v\n", algoName, err)
-		//os.Exit(1)
+		os.Exit(1) // Test more
 	}
-	fmt.Printf("\n%s\n\n", stdout)
+	fmt.Printf("%s\n", stdout)
 }
 
 func checkSystemSensors(c string) {
@@ -179,13 +178,14 @@ func main() {
 
 	c := creds{*hostnameIP, *username, *password}
 	credString := fmt.Sprintf("-I lanplus -H %v -U %v -P %v ", c.hostnameIP, c.username, c.password)
+	fmt.Println("")
 
 	checkSystemTemps(credString)
 	//checkCurrentFanSpeed(credString)
 	//checkThirdPartyCardBehavior(credString)
 	//setManualFanMode(credString, *ManualFanMode)
-	//setThirdPartyCardBehavior(credString, *thirdPartyCardBehavior)
-	setFanSpeed(credString, *FanSpeed)
+	setThirdPartyCardBehavior(credString, *thirdPartyCardBehavior)
+	//setFanSpeed(credString, *FanSpeed)
 
 }
 
