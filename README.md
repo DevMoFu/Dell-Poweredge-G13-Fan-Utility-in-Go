@@ -1,16 +1,14 @@
 # Dell-Poweredge-G13-Fan-Utility-in-Go
+Dell PowerEdge Gen 13 fan control CLI Utility
 ***Work In Progress***
-
 ***Not intended for PRODUCTION use***
 ***Not Affiliation is Dell***
-
-Dell PowerEdge Gen 13 fan control CLI Utility
 
 ## How:
 Ipmi Wrapper made with Go for Linux
 
 ## Why:
-My Dell r330s are too loud. Don't want to use Bash anymore. I like Go...
+My Dell r330s are a little too loud. Don't want to use Bash anymore. I like Go...
 
 ## ToDo:
 - [x] Collect hex codes for raw commands
@@ -27,14 +25,21 @@ My Dell r330s are too loud. Don't want to use Bash anymore. I like Go...
 - [ ] Cross post with r/homelab and r/golang for feedback
 
 ## Prerequisites:
+- [Linux](https://www.linux.org/)
+- [Git](https://git-scm.com/)
+- [Go](https://golang.org/)
+- [ipmitool](http://www.aslab.com/support/kb/224.html) installed and working
+- [Dell PowerEdge with idrac]
 
 ## To Build:
 *** Warning logic for easy interation not yet implemented. ***
+
 *** But you can uncomment functions in main() for the action you want to take. ***
 1. Clone Repo `Git clone https://github.com/DevMoFu/Dell-Poweredge-G13-Fan-Utility-in-Go/blob/master/main.go`
 2. `Go build -o "Your desired name" main.go`
 
-## Args: ***Warning WIP! Use at your own RISK!***
+## Args: 
+***Warning WIP! Use at your own RISK!***
 ```
 Usage:
   -FanSpeed int
@@ -86,3 +91,8 @@ setThirdPartyCardBehavior: 'disable' option selected
 ```
 ## Tested On:
 - Dell PowerEdge R330
+
+## Sources/Inspiration:
+- https://github.com/ipmitool/ipmitool/issues/30
+- https://www.reddit.com/r/homelab/comments/7xqb11/dell_fan_noise_control_silence_your_poweredge/
+- https://www.spxlabs.com/blog/2019/3/16/silence-your-dell-poweredge-server
