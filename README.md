@@ -1,6 +1,5 @@
 # Dell-Poweredge-G13-Fan-Utility-in-Go
 Dell PowerEdge Gen 13 fan control CLI Utility
-***Work In Progress***
 ***Not intended for PRODUCTION use***
 ***Not Affiliation is Dell***
 
@@ -16,10 +15,9 @@ My Dell r330s are a little too loud. Don't want to use Bash anymore. I like Go..
 - [x] Add fan mode control
 - [x] Add fan speed control
 - [x] Add 3rd party card behavior control
-- [ ] Add real time fan monitor
-- [ ] Add flag to view all sensors
-- [ ] Add logic for user interation
-- [ ] Add check for dependencies (ipmi/ipmitool) (linux)
+- [ ] Add flag to view all sensors data
+- [x] Add logic for user interation
+- [x] Add check for dependencies (ipmi/ipmitool) (linux)
 - [ ] Add steps to enable ipmi over Lan to READ.md
 - [ ] Add help to READ.md
 - [ ] Cross post with r/homelab and r/golang for feedback
@@ -32,14 +30,10 @@ My Dell r330s are a little too loud. Don't want to use Bash anymore. I like Go..
 - [Dell PowerEdge with idrac]
 
 ## To Build:
-*** Warning logic for easy interation not yet implemented. ***
-
-*** But you can uncomment functions in main() for the action you want to take. ***
 1. Clone Repo `Git clone https://github.com/DevMoFu/Dell-Poweredge-G13-Fan-Utility-in-Go/blob/master/main.go`
 2. `Go build -o "Your desired name" main.go`
 
 ## Args: 
-***Warning WIP! Use at your own RISK!***
 ```
 Usage:
   -FanSpeed int
@@ -73,18 +67,44 @@ Usage:
 ```
 []# ./fanUtility -H <idrac hostname or ip> -U <username> -P <password> -FanSpeed 20
 
-System Temps:
-Temp             | 71
-Inlet Temp       | 22
+Current System Temps:
+Temp             | 64
+Inlet Temp       | 21
+
+Current Fan Speeds:
+Fan1A            | 4080
+Fan1B            | 3720
+Fan2A            | 4080
+Fan2B            | 3720
+Fan3A            | 3960
+Fan3B            | 3720
+Fan4A            | 3960
+Fan4B            | 3720
+
+Current 3rd Party Card Behavior:
+ 16 05 00 00 00 05 00 01 00 00
 
 Automatically enabling Manual Fan Mode to set Fan Speed to 20%
 setManualFanMode: Enabled
 
 []# ./fanUtility -H <idrac hostname or ip> -U <username> -P <password> -ThirdPartyCardBehavior disable
 
-System Temps:
-Temp             | 68
-Inlet Temp       | 22
+Current System Temps:
+Temp             | 64
+Inlet Temp       | 21
+
+Current Fan Speeds:
+Fan1A            | 4080
+Fan1B            | 3720
+Fan2A            | 4080
+Fan2B            | 3720
+Fan3A            | 3960
+Fan3B            | 3720
+Fan4A            | 3960
+Fan4B            | 3720
+
+Current 3rd Party Card Behavior:
+ 16 05 00 00 00 05 00 01 00 00
 
 setThirdPartyCardBehavior: 'disable' option selected
  16 05 00 00 00
