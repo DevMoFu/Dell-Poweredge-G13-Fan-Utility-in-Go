@@ -6,14 +6,16 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"runtime"
 	"strings"
+	"time"
 )
 
-//// create impitool boilerplate to enforce DRY
+// Create impitool boilerplate to enforce DRY
 func ipmiBoilerplate(args string, algoName string) {
 	argsArray := strings.Split(args, " ")
 
-	//fix for items that need white space in a single arg. Replace underscore.
+	// Fix for items that need white space in a single arg. Replace underscore.
 	for i := range argsArray {
 		matched, _ := regexp.MatchString(`_`, argsArray[i])
 		if matched {
@@ -24,8 +26,11 @@ func ipmiBoilerplate(args string, algoName string) {
 	cmd := exec.Command("ipmitool", argsArray...)
 	stdout, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("%v failed with: \n%v\n", algoName, err)
-		os.Exit(1) // Test more
+		fmt.Printf("%v failed with:\n%v\n", algoName, err)
+		if stdout != nil {
+			fmt.Printf("Stdout:\n%s", stdout)
+		}
+		os.Exit(1)
 	}
 	fmt.Printf("%s\n", stdout)
 }
@@ -38,12 +43,11 @@ func checkSystemSensors(c string) {
 }
 
 func checkSystemTemps(c string) {
-	//  sensor reading 'Inlet Temp' Temp
 	algoName := "checkSystemTemps"
 	// Split in ipmiBoilerplate breaks 'Inlet Temp' arg.
 	// Fix has been added to make 'Inlet_Temp' -> 'Intlet Temp'
 	args := fmt.Sprintf("%vsensor reading Temp Inlet_Temp", c)
-	fmt.Println("System Temps:")
+	fmt.Println("Current System Temps:")
 	ipmiBoilerplate(args, algoName)
 }
 
@@ -57,6 +61,7 @@ func checkCurrentFanSpeed(c string) {
 func checkThirdPartyCardBehavior(c string) {
 	algoName := "checkThirdPartyCardBehavior"
 	args := fmt.Sprintf("%sraw 0x30 0xce 0x01 0x16 0x05 0x00 0x00 0x00", c)
+	fmt.Println("Current 3rd Party Card Behavior:")
 	ipmiBoilerplate(args, algoName)
 }
 
@@ -126,12 +131,11 @@ func setFanSpeed(c string, FanSpeed int) {
 		os.Exit(1)
 	}
 
-	// TODO: Notify user of fan mod change.
+	// Notify user of fan mode change and speed selected
 	fmt.Printf("Automatically enabling Manual Fan Mode to set Fan Speed to %v%%\n", FanSpeed)
 	setManualFanMode(c, "enable")
 
 	args := fmt.Sprintf("%s%s %s", c, "raw", fanSpeedHex)
-
 	ipmiBoilerplate(args, algoName)
 }
 
@@ -153,46 +157,65 @@ func setThirdPartyCardBehavior(c string, thirdPartyCardBehavior string) {
 	ipmiBoilerplate(args, algoName)
 }
 
-type creds struct {
+type userCredentials struct {
 	hostnameIP string
 	username   string
 	password   string
 }
 
-// TODO: Add logic for option selection
-// Use ping node test and system info to verify connectivity
-// Show system temp fan
+type userInput struct {
+	manualFanMode          string
+	fanSpeed               int
+	thirdPartyCardBehavior string
+	time                   time.Time
+}
+
 func main() {
 
-	// credential
+	// Credential
 	hostnameIP := flag.String("H", "", "Hostname or IP")
 	username := flag.String("U", "", "Username")
 	password := flag.String("P", "", "Password")
-	// modifying args
-	ManualFanMode := flag.String("ManualFanMode", "na", "'enable' or 'disable' manual fan control")
+	// Modifying args
+	ManualFanMode := flag.String("ManualFanMode", "", "'enable' or 'disable' manual fan control")
 	FanSpeed := flag.Int("FanSpeed", 888, "10 < 'init' < 100 in increments of 5\nFanMode required to be enabled")
 	thirdPartyCardBehavior := flag.String("ThirdPartyCardBehavior", "", "'enable' or 'disable' 3rd Party Fan Behavior")
 	flag.Parse()
+
+	u := userInput{*ManualFanMode, *FanSpeed, *thirdPartyCardBehavior, time.Now()}
+	c := userCredentials{*hostnameIP, *username, *password}
+	credString := fmt.Sprintf("-I lanplus -H %v -U %v -P %v ", c.hostnameIP, c.username, c.password)
+	fmt.Println("")
 	// Silence Go when no using associated flags
 	fmt.Sprintln(ManualFanMode, FanSpeed, thirdPartyCardBehavior)
 
-	c := creds{*hostnameIP, *username, *password}
-	credString := fmt.Sprintf("-I lanplus -H %v -U %v -P %v ", c.hostnameIP, c.username, c.password)
-	fmt.Println("")
+	// Verify OS and other dependencies
+	if runtime.GOOS != "linux" {
+		fmt.Println("This tool is only compatible with linux!")
+		os.Exit(1)
+	}
 
+	// Verify fields are not == ""
+	if c.hostnameIP == "" || c.password == "" || c.username == "" {
+		fmt.Println("(Hostname|Ip), Password or Username Missing.")
+		fmt.Println("Type 'Help' to see input options")
+	}
+
+	// Verify idrac connectivity while showing current status
+	// Wrap in function
 	checkSystemTemps(credString)
-	//checkCurrentFanSpeed(credString)
-	//checkThirdPartyCardBehavior(credString)
-	//setManualFanMode(credString, *ManualFanMode)
-	setThirdPartyCardBehavior(credString, *thirdPartyCardBehavior)
-	//setFanSpeed(credString, *FanSpeed)
+	checkCurrentFanSpeed(credString)
+	checkThirdPartyCardBehavior(credString)
 
+	// User logic starts here
+	// Perform actions
+	if u.fanSpeed != 888 {
+		setFanSpeed(credString, *FanSpeed)
+	} else if u.manualFanMode != "" {
+		setManualFanMode(credString, *ManualFanMode)
+	}
+
+	if u.thirdPartyCardBehavior != "" {
+		setThirdPartyCardBehavior(credString, *thirdPartyCardBehavior)
+	}
 }
-
-/*
-	Note: “TEMP” was the name of my sensor, You can try “Ambient Temperature” for your server if you want to see the temperature of the CPU.  Also, the fan names are case sensitive.  So save yourself a few moments of troubleshooting by using the name as reported in iDRAC.
-	This command will print out a ton of information about the Fans, stats for nerds basically.
-
-https://github.com/ipmitool/ipmitool/issues/30
-https://www.reddit.com/r/homelab/comments/7xqb11/dell_fan_noise_control_silence_your_poweredge/
-*/
