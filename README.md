@@ -1,15 +1,19 @@
 # Dell-Poweredge-G13-Fan-Utility-in-Go
+
 Dell PowerEdge Gen 13 fan control CLI Utility
 ***Not intended for PRODUCTION use***
 ***Not Affiliation is Dell***
 
-## How:
+## How
+
 Ipmi Wrapper made with Go for Linux
 
-## Why:
+## Why
+
 My Dell r330s are a little too loud. Don't want to use Bash anymore. I like Go...
 
-## ToDo:
+## ToDo
+
 - [x] Collect hex codes for raw commands
 - [x] Query current system temps and fan speeds
 - [x] Add fan mode control
@@ -22,19 +26,22 @@ My Dell r330s are a little too loud. Don't want to use Bash anymore. I like Go..
 - [ ] Add help to READ.md
 - [ ] Cross post with r/homelab and r/golang for feedback
 
-## Prerequisites:
+## Prerequisites
+
 - [Linux](https://www.linux.org/)
 - [Git](https://git-scm.com/)
 - [Go](https://golang.org/)
 - [ipmitool](http://www.aslab.com/support/kb/224.html) installed and working
 - [Dell PowerEdge with idrac]
 
-## To Build:
+## To Build
+
 1. Clone Repo `Git clone https://github.com/DevMoFu/Dell-Poweredge-G13-Fan-Utility-in-Go/blob/master/main.go`
 2. `Go build -o "Your desired name" main.go`
 
-## Args: 
-```
+## Args
+
+```go
 Usage:
   -FanSpeed int
         10 < 'init' < 100 in increments of 5
@@ -51,8 +58,9 @@ Usage:
         Username
 ```
 
-## Sample Input:
-```
+## Sample Input
+
+```bash
 "Set fan speed to 20%"
 ./fanUtility -H <idrac hostname or ip> -U <username> -P <password> -FanSpeed 20
 
@@ -63,8 +71,9 @@ Usage:
 ./fanUtility -H <idrac hostname or ip> -U <username> -P <password> -ManualFanMode disable
 ```
 
-## Sample Output:
-```
+## Sample Output
+
+```bash
 []# ./fanUtility -H <idrac hostname or ip> -U <username> -P <password> -FanSpeed 20
 
 Current System Temps:
@@ -109,10 +118,13 @@ Current 3rd Party Card Behavior:
 setThirdPartyCardBehavior: 'disable' option selected
  16 05 00 00 00
 ```
-## Tested On:
+
+## Tested On
+
 - Dell PowerEdge R330
 
-## Sources/Inspiration:
+## Sources/Inspiration
+
 - https://github.com/ipmitool/ipmitool/issues/30
 - https://www.reddit.com/r/homelab/comments/7xqb11/dell_fan_noise_control_silence_your_poweredge/
 - https://www.spxlabs.com/blog/2019/3/16/silence-your-dell-poweredge-server
