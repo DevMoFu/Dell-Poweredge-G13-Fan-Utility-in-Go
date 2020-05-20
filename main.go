@@ -173,13 +173,13 @@ type userInput struct {
 func main() {
 
 	// Credential
-	hostnameIP := flag.String("H", "", "Hostname or IP")
-	username := flag.String("U", "", "Username")
-	password := flag.String("P", "", "Password")
+	hostnameIP := flag.String("H", "", "Idrac Hostname or IP")
+	username := flag.String("U", "", "Idrac username")
+	password := flag.String("P", "", "Idrac password")
 	// Modifying args
 	ManualFanMode := flag.String("ManualFanMode", "", "'enable' or 'disable' manual fan control")
-	FanSpeed := flag.Int("FanSpeed", 888, "10 < 'init' < 100 in increments of 5\nFanMode required to be enabled")
-	thirdPartyCardBehavior := flag.String("ThirdPartyCardBehavior", "", "'enable' or 'disable' 3rd Party Fan Behavior")
+	FanSpeed := flag.Int("FanSpeed", 888, "10 < 'int' < 100 in increments of 5\nFan mode will automatically set to 'enable' if speed is selected")
+	thirdPartyCardBehavior := flag.String("ThirdPartyCardBehavior", "", "'enable' or 'disable' third party fan behavior")
 	flag.Parse()
 
 	u := userInput{*ManualFanMode, *FanSpeed, *thirdPartyCardBehavior, time.Now()}

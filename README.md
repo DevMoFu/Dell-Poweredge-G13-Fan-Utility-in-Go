@@ -37,30 +37,33 @@ My Dell r330s are a little too loud. Don't want to use Bash anymore. I like Go..
 ## To Build
 
 1. Clone Repo `Git clone https://github.com/DevMoFu/Dell-Poweredge-G13-Fan-Utility-in-Go/blob/master/main.go`
-2. `Go build -o "Your desired name" main.go`
+2. `Go build -o fanUtility main.go`
 
 ## Args
 
 ```go
-Usage:
+Usage of ./fanUtility:
   -FanSpeed int
-        10 < 'init' < 100 in increments of 5
-        FanMode required to be enabled (default 888)
+        10 < 'int' < 100 in increments of 5
+        Fan mode will automatically set to 'enable' if speed is selected (default 888)
   -H string
-        Hostname or IP
+        Idrac Hostname or IP
   -ManualFanMode string
-        'enable' or 'disable' manual fan control (default "na")
+        'enable' or 'disable' manual fan control
   -P string
-        Password
+        Idrac password
   -ThirdPartyCardBehavior string
-        'enable' or 'disable' 3rd Party Fan Behavior
+        'enable' or 'disable' third party fan behavior
   -U string
-        Username
+        Idrac username
 ```
 
 ## Sample Input
 
 ```bash
+"See system temp, fan speed and third party card behavior"
+./fanUtility -H <idrac hostname or ip> -U <username> -P <password>
+
 "Set fan speed to 20%"
 ./fanUtility -H <idrac hostname or ip> -U <username> -P <password> -FanSpeed 20
 
